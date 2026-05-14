@@ -1,0 +1,2809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bike Motion Sensor // Phase 1 Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --bg-2: #11161e;
+    --panel: #151b25;
+    --panel-2: #1b232f;
+    --line: #2a3441;
+    --line-bright: #3a4858;
+    --text: #d8dee9;
+    --text-dim: #8b97a8;
+    --text-faint: #5a6678;
+    --cyan: #00f5d4;
+    --cyan-dim: #00b89d;
+    --magenta: #ff2a6d;
+    --magenta-dim: #c41e57;
+    --lime: #aaff00;
+    --amber: #ffb700;
+    --red: #ff3860;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --sans: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(0, 245, 212, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(255, 42, 109, 0.05) 0%, transparent 40%),
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,255,255,0.012) 2px,
+      rgba(255,255,255,0.012) 3px
+    );
+    z-index: 1000;
+    mix-blend-mode: overlay;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 14, 20, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+  }
+
+  .topbar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+  }
+
+  .brand .dot {
+    width: 8px;
+    height: 8px;
+    background: var(--cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--cyan);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .progress-wrap { flex: 1; max-width: 500px; }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .progress-label span:last-child { color: var(--cyan); }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--lime));
+    box-shadow: 0 0 8px var(--cyan);
+    transition: width 0.4s cubic-bezier(.2,.7,.3,1);
+  }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .hero {
+    border: 1px solid var(--line);
+    background: linear-gradient(135deg, var(--panel) 0%, var(--bg-2) 100%);
+    padding: 56px 48px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: 'PROJECT_BRIEF.HTML';
+    position: absolute;
+    top: 14px;
+    right: 24px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.2em;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(0,245,212,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--magenta);
+    letter-spacing: 0.3em;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: var(--mono);
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 .accent {
+    background: linear-gradient(90deg, var(--cyan), var(--lime));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 680px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .hero-meta .item {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .hero-meta .item strong {
+    display: block;
+    font-size: 14px;
+    color: var(--text);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .alert {
+    border: 1px solid var(--amber);
+    background: rgba(255, 183, 0, 0.06);
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    font-size: 14px;
+  }
+
+  .alert-icon {
+    font-family: var(--mono);
+    color: var(--amber);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .alert strong { color: var(--amber); }
+
+  .tabs {
+    border: 1px solid var(--line);
+    margin-bottom: 32px;
+    background: var(--panel);
+  }
+
+  .tab-list {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab-list::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 16px 16px;
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--line);
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    position: relative;
+  }
+
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn:hover { background: var(--bg-2); color: var(--text); }
+  .tab-btn.active { background: var(--bg-2); color: var(--cyan); }
+
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  .tab-btn .num {
+    display: block;
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+  .tab-btn.active .num { color: var(--magenta); }
+
+  .tab-panel {
+    display: none;
+    padding: 40px 36px;
+    animation: fadeIn 0.3s ease-out;
+  }
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .arch-card {
+    border: 1px solid var(--line);
+    padding: 28px;
+    margin-bottom: 20px;
+    background: var(--bg-2);
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .arch-card:hover { border-color: var(--line-bright); }
+  .arch-card.recommended {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 1px var(--cyan), 0 0 24px rgba(0, 245, 212, 0.1);
+  }
+  .arch-card.not-recommended { border-color: var(--red); opacity: 0.85; }
+
+  .arch-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    padding: 4px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .arch-badge.go { background: var(--cyan); color: var(--bg); }
+  .arch-badge.no { background: var(--red); color: white; }
+  .arch-badge.later { background: var(--amber); color: var(--bg); }
+
+  .arch-card h3 {
+    font-family: var(--mono);
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .arch-card .arch-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  .arch-card p { color: var(--text-dim); margin-bottom: 16px; }
+
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .arch-grid { grid-template-columns: 1fr; }
+  }
+
+  .arch-grid h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .pros h4 { color: var(--lime); }
+  .cons h4 { color: var(--magenta); }
+
+  .arch-grid ul { list-style: none; font-size: 14px; }
+  .arch-grid li { padding: 4px 0 4px 18px; position: relative; color: var(--text-dim); }
+
+  .pros li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    color: var(--lime);
+    font-family: var(--mono);
+    font-weight: 700;
+  }
+
+  .cons li::before {
+    content: '−';
+    position: absolute;
+    left: 0;
+    color: var(--magenta);
+    font-family: var(--mono);
+    font-weight: 700;
+  }
+
+  .dad-take {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(255, 42, 109, 0.06);
+    border-left: 2px solid var(--magenta);
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .dad-take::before {
+    content: 'DAD: ';
+    font-style: normal;
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--magenta);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+  }
+
+  .checklist {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: rgba(0, 245, 212, 0.04); }
+
+  .check-box {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--line-bright);
+    margin-top: 3px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .check-item.done .check-box {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow: 0 0 8px rgba(0, 245, 212, 0.5);
+  }
+
+  .check-item.done .check-box::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--bg);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .check-item.done .check-text {
+    color: var(--text-faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--cyan);
+  }
+
+  .check-text { flex: 1; font-size: 14px; color: var(--text-dim); transition: all 0.2s; }
+  .check-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+  .day-grid { display: grid; gap: 12px; margin-top: 20px; }
+
+  .day-card {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .day-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background: var(--panel);
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .day-card-header:hover { background: var(--panel-2); }
+  .day-card.expanded .day-card-header { border-bottom-color: var(--line); }
+
+  .day-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--bg);
+    background: var(--cyan);
+    padding: 3px 8px;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .day-tag.w2 { background: var(--magenta); color: white; }
+
+  .day-title {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .day-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+  }
+
+  .day-progress {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  .day-progress.complete { color: var(--lime); }
+
+  .day-chevron {
+    font-family: var(--mono);
+    color: var(--text-faint);
+    transition: transform 0.2s;
+  }
+  .day-card.expanded .day-chevron { transform: rotate(90deg); }
+
+  .day-card-body { display: none; padding: 8px 0; }
+  .day-card.expanded .day-card-body { display: block; }
+  .day-card-body .check-item:last-child { border-bottom: none; }
+
+  .hw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+
+  .hw-table th, .hw-table td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hw-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    background: var(--bg-2);
+  }
+
+  .hw-table td:first-child {
+    font-family: var(--mono);
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .hw-table td.cost {
+    font-family: var(--mono);
+    color: var(--lime);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .hw-table a {
+    color: var(--cyan);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--cyan-dim);
+  }
+  .hw-table a:hover { color: var(--lime); border-bottom-color: var(--lime); }
+
+  .hw-total {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--cyan);
+    background: rgba(0, 245, 212, 0.05);
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+
+  .hw-total .label { color: var(--cyan); letter-spacing: 0.1em; }
+  .hw-total .value { color: var(--lime); font-weight: 700; }
+
+  h2.section-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h2.section-title::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--cyan);
+  }
+
+  h3.subhead {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    color: var(--text);
+  }
+
+  p.lead {
+    font-size: 16px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .panel h4 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--magenta);
+    margin-bottom: 12px;
+  }
+
+  .panel ul, .content-list { list-style: none; font-size: 14px; color: var(--text-dim); }
+  .panel li, .content-list li { padding: 6px 0 6px 22px; position: relative; }
+
+  .panel li::before, .content-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+    font-size: 12px;
+    top: 8px;
+  }
+
+  .panel li strong, .content-list li strong { color: var(--text); }
+
+  .qa {
+    border-left: 2px solid var(--magenta);
+    padding-left: 20px;
+    margin: 20px 0;
+  }
+
+  .qa h5 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--magenta);
+    margin-bottom: 8px;
+  }
+
+  .code {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 14px 18px;
+    color: var(--cyan);
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+
+  .signoff {
+    margin-top: 48px;
+    padding: 32px;
+    border: 1px dashed var(--line-bright);
+    text-align: center;
+    background: var(--bg-2);
+  }
+
+  .signoff p {
+    font-style: italic;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .signoff .name {
+    font-family: var(--mono);
+    color: var(--cyan);
+    font-style: normal;
+    letter-spacing: 0.2em;
+    font-size: 13px;
+  }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--magenta); color: var(--magenta); }
+
+  .prompt-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .prompt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .prompt-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--line-bright);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .copy-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .copy-btn.copied { border-color: var(--lime); color: var(--lime); }
+
+  .prompt-body {
+    padding: 16px 18px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .prompt-body .blank {
+    background: rgba(255, 42, 109, 0.15);
+    color: var(--magenta);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 720px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+
+  .compare-card {
+    border: 1px solid var(--line);
+    padding: 18px;
+    background: var(--bg-2);
+  }
+
+  .compare-card.bad { border-color: var(--red); }
+  .compare-card.good { border-color: var(--lime); }
+
+  .compare-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .compare-card.bad .compare-label { color: var(--red); }
+  .compare-card.good .compare-label { color: var(--lime); }
+
+  .compare-card .quote {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-left: 2px solid var(--line);
+    margin-bottom: 12px;
+  }
+
+  .compare-card.bad .quote { border-left-color: var(--red); }
+  .compare-card.good .quote { border-left-color: var(--lime); }
+
+  .compare-card .why {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .ladder { margin: 24px 0; counter-reset: rung; }
+
+  .rung {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: flex-start;
+  }
+  .rung:last-child { border-bottom: none; }
+
+  .rung-num {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--cyan);
+  }
+  .rung-num.warn { color: var(--amber); }
+  .rung-num.stop { color: var(--red); }
+
+  .rung-content h4 {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .rung-content p { color: var(--text-dim); font-size: 14px; margin-bottom: 8px; }
+
+  .rung-content .who {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .who.claude { background: var(--cyan); color: var(--bg); }
+  .who.dad { background: var(--magenta); color: white; }
+  .who.self { background: var(--line-bright); color: var(--text); }
+  .who.stop { background: var(--red); color: white; }
+
+  .bug-card {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+
+  .bug-header {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel);
+    transition: background 0.15s;
+  }
+  .bug-header:hover { background: var(--panel-2); }
+
+  .bug-symptom {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .bug-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 3px 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .bug-tag.imu { background: rgba(0,245,212,0.15); color: var(--cyan); }
+  .bug-tag.sd { background: rgba(170,255,0,0.15); color: var(--lime); }
+  .bug-tag.power { background: rgba(255,183,0,0.15); color: var(--amber); }
+  .bug-tag.firmware { background: rgba(255,42,109,0.15); color: var(--magenta); }
+  .bug-tag.python { background: rgba(255,255,255,0.08); color: var(--text-dim); }
+  .bug-tag.mount { background: rgba(255,183,0,0.15); color: var(--amber); }
+
+  .bug-chevron {
+    font-family: var(--mono);
+    color: var(--text-faint);
+    transition: transform 0.2s;
+  }
+  .bug-card.open .bug-chevron { transform: rotate(90deg); }
+
+  .bug-body {
+    display: none;
+    padding: 18px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .bug-card.open .bug-body { display: block; }
+
+  .bug-body h5 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin: 0 0 8px;
+  }
+  .bug-body h5:not(:first-child) { margin-top: 16px; }
+
+  .bug-body ol, .bug-body ul {
+    list-style: none;
+    counter-reset: step;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .bug-body ol li {
+    counter-increment: step;
+    padding: 4px 0 4px 28px;
+    position: relative;
+  }
+
+  .bug-body ol li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bug-body ul li {
+    padding: 4px 0 4px 18px;
+    position: relative;
+  }
+
+  .bug-body ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+    top: 4px;
+  }
+
+  .protocol {
+    border: 2px solid var(--magenta);
+    background: rgba(255, 42, 109, 0.04);
+    padding: 24px;
+    margin: 24px 0;
+  }
+
+  .protocol-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--magenta);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .protocol h3 {
+    font-family: var(--mono);
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .protocol ol { list-style: none; counter-reset: pstep; }
+
+  .protocol ol li {
+    counter-increment: pstep;
+    padding: 10px 0 10px 40px;
+    position: relative;
+    border-bottom: 1px solid rgba(255,42,109,0.15);
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .protocol ol li:last-child { border-bottom: none; }
+
+  .protocol ol li::before {
+    content: counter(pstep);
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 28px;
+    height: 28px;
+    background: var(--magenta);
+    color: white;
+    font-family: var(--mono);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .protocol ol li strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+  .terminal {
+    background: #06090d;
+    border: 1px solid var(--line);
+    margin: 12px 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .terminal-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .terminal-tag::before {
+    content: '● ● ●';
+    color: var(--line-bright);
+    margin-right: 10px;
+    letter-spacing: -2px;
+  }
+
+  .terminal-body {
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--cyan);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .terminal-body .prompt-symbol {
+    color: var(--magenta);
+    user-select: none;
+    margin-right: 6px;
+  }
+
+  .terminal-body .comment { color: var(--text-faint); }
+
+  code.inline {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--cyan);
+    padding: 2px 8px;
+  }
+
+  .step {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--panel);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .step-header:hover { background: var(--panel-2); }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--cyan);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .step.done .step-num { background: var(--lime); }
+
+  .step-title {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .step-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+  }
+
+  .step-chevron {
+    font-family: var(--mono);
+    color: var(--text-faint);
+    transition: transform 0.2s;
+  }
+  .step.expanded .step-chevron { transform: rotate(90deg); }
+
+  .step-body {
+    display: none;
+    padding: 20px 24px;
+    border-top: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .step.expanded .step-body { display: block; }
+
+  .step-body p { margin-bottom: 12px; }
+  .step-body strong { color: var(--text); }
+  .step-body a { color: var(--cyan); text-decoration: none; border-bottom: 1px dashed var(--cyan-dim); }
+  .step-body a:hover { color: var(--lime); border-bottom-color: var(--lime); }
+
+  .step-check {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-left: 2px solid var(--cyan);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .step-check::before {
+    content: '✓ DONE WHEN: ';
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.15em;
+  }
+
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: rgba(255, 183, 0, 0.05);
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  .callout.danger {
+    border-left-color: var(--red);
+    background: rgba(255, 56, 96, 0.05);
+  }
+
+  .callout.info {
+    border-left-color: var(--cyan);
+    background: rgba(0, 245, 212, 0.05);
+  }
+
+  .callout strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+
+  .callout.danger strong { color: var(--red); }
+  .callout.info strong { color: var(--cyan); }
+
+  .setup-divider {
+    margin: 48px 0 28px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--magenta);
+  }
+
+  .git-grid { display: grid; gap: 14px; margin: 16px 0; }
+
+  .git-cmd {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+
+  @media (max-width: 640px) {
+    .git-cmd { grid-template-columns: 1fr; }
+  }
+
+  .git-cmd code {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--cyan);
+    background: var(--bg);
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .git-cmd .desc { font-size: 13px; color: var(--text-dim); }
+  .git-cmd .desc strong { color: var(--text); }
+
+  .phase-arc {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 768px) {
+    .phase-arc { grid-template-columns: 1fr 1fr; }
+  }
+
+  .phase-box {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 18px 16px;
+  }
+
+  .phase-box.current {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 1px var(--cyan), 0 0 18px rgba(0,245,212,0.1);
+  }
+
+  .phase-box .phase-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .phase-box.current .phase-tag { color: var(--cyan); }
+
+  .phase-box h4 {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .phase-box p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .hero { padding: 36px 24px; }
+    .topbar-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .progress-wrap { width: 100%; }
+    .tab-panel { padding: 24px 18px; }
+    .arch-card { padding: 20px; }
+    .hero-meta { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>BIKE_MOTION_SENSOR // PHASE 1</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>PHASE 1 PROGRESS</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <button class="reset-btn" id="reset-btn">RESET</button>
+  </div>
+</div>
+
+<main>
+
+<section class="hero">
+  <div class="hero-tag">// PROJECT BRIEF · PHASE 1 OF A LONGER ARC</div>
+  <h1>Build a sensor<br>that <span class="accent">sees how you ride.</span></h1>
+  <p>An IMU on the bike, a logger that captures every twist, jump, and landing, and a Python notebook that shows you what your riding actually looks like in the data. Phase 1 of a longer arc toward a gamified trail platform.</p>
+  <div class="hero-meta">
+    <div class="item">LEAD<strong>Jack</strong></div>
+    <div class="item">PHASE 1 GOAL<strong>Capture + visualize ride data</strong></div>
+    <div class="item">TIMELINE<strong>2 weeks, 12 hrs/wk</strong></div>
+    <div class="item">BUDGET<strong>About $80</strong></div>
+  </div>
+</section>
+
+<div class="alert">
+  <div class="alert-icon">[!]</div>
+  <div>
+    <strong>Heads up.</strong> This document is interactive. Your progress saves automatically in this browser. If you change the architecture or the build plan, ask Claude to regenerate this HTML so it matches what you are actually building. Otherwise the checklists will get out of sync with reality and that defeats the point.
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab-list" role="tablist">
+    <button class="tab-btn active" data-tab="project"><span class="num">01</span>The Project</button>
+    <button class="tab-btn" data-tab="setup"><span class="num">02</span>Setup</button>
+    <button class="tab-btn" data-tab="arch"><span class="num">03</span>Architecture</button>
+    <button class="tab-btn" data-tab="hardware"><span class="num">04</span>Hardware</button>
+    <button class="tab-btn" data-tab="firmware"><span class="num">05</span>Firmware</button>
+    <button class="tab-btn" data-tab="data"><span class="num">06</span>Data Capture</button>
+    <button class="tab-btn" data-tab="plan"><span class="num">07</span>2-Week Plan</button>
+    <button class="tab-btn" data-tab="claude"><span class="num">08</span>Using Claude</button>
+    <button class="tab-btn" data-tab="stuck"><span class="num">09</span>When Stuck</button>
+    <button class="tab-btn" data-tab="ship"><span class="num">10</span>Ship It</button>
+  </div>
+
+  <!-- ===== TAB: PROJECT ===== -->
+  <div class="tab-panel active" id="panel-project">
+    <h2 class="section-title">// 01 · The Project</h2>
+    <h3 class="subhead">What we are actually building.</h3>
+    <p class="lead">A small device that lives on your bike, samples motion 200 times per second using a 9-axis IMU, and logs everything to an SD card. After a ride, you pull the card, load the data into Python, and see what every drop, jump, and berm looks like in the signal. That is Phase 1. The long-term arc is much bigger.</p>
+
+    <h3 class="subhead" style="margin-top: 32px;">The Long-Term Arc</h3>
+    <p style="color: var(--text-dim); margin-bottom: 20px; font-size: 14px;">We are aiming at a gamified trail platform with real riders. Phase 1 is the foundation underneath the whole stack. Skip it and nothing later works.</p>
+
+    <div class="phase-arc">
+      <div class="phase-box current">
+        <div class="phase-tag">// PHASE 1 · NOW</div>
+        <h4>Capture</h4>
+        <p>Build the logger. Mount on bike. Capture clean labeled data from real rides. Visualize it.</p>
+      </div>
+      <div class="phase-box">
+        <div class="phase-tag">// PHASE 2 · NEXT</div>
+        <h4>Detect</h4>
+        <p>Classifier in Python that flags drops, jumps, bunny hops, and trail features from logged data. Threshold first, then ML.</p>
+      </div>
+      <div class="phase-box">
+        <div class="phase-tag">// PHASE 3 · LATER</div>
+        <h4>Feedback</h4>
+        <p>Real-time. Either on-device cues or BLE to a phone app that tells you what trick you just landed.</p>
+      </div>
+      <div class="phase-box">
+        <div class="phase-tag">// PHASE 4+ · NORTH STAR</div>
+        <h4>Platform</h4>
+        <p>Trails get scored. Riders get points. Leaderboards, accounts, a mobile app, a backend. Multi-year build.</p>
+      </div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">What Phase 1 Has To Deliver</h3>
+
+    <div class="panel">
+      <h4>// MUST HAVE</h4>
+      <ul>
+        <li>A working device that powers on from a battery, samples the IMU at 200 Hz, and writes binary records to an SD card.</li>
+        <li>A switch and a status LED. Start and stop logging without a laptop.</li>
+        <li>A 3D-printed enclosure that mounts to the bottle cage bolts on your full-sus frame.</li>
+        <li>A repeatable sync method (sharp triple-tap on the device at the start of each ride) so we can line up the IMU data with GoPro footage later.</li>
+        <li>At least one real trail ride captured, with GoPro video, and an accompanying Python notebook that loads, plots, and lets us annotate the data.</li>
+        <li>Git repo with README, CLAUDE.md, and a Decisions Log documenting what you chose and why.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h4>// EXPLICITLY OUT OF SCOPE FOR PHASE 1</h4>
+      <ul>
+        <li>No trick detection. We will look at the data with our own eyes in Phase 1.</li>
+        <li>No live feedback during the ride. No phone app. No BLE.</li>
+        <li>No ML model. Phase 2 work.</li>
+        <li>No backend, no accounts, no scoring. That is Phase 3 and Phase 4 territory.</li>
+      </ul>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">What You Walk Out Of Phase 1 Knowing</h3>
+    <ul class="content-list">
+      <li>How to set up PlatformIO and program an ESP32 from scratch.</li>
+      <li>The basics of I²C and SPI: how chips talk to a microcontroller.</li>
+      <li>How to wire a power switch, an LED, a battery, and a real circuit that survives a bike ride.</li>
+      <li>A working Python data workflow: load a binary file, plot it, annotate it.</li>
+      <li>Signal-processing intuition. What an acceleration spike looks like versus a gyro spin. What sample rate means. What filtering does.</li>
+      <li>Project hygiene: small commits, useful commit messages, a Decisions Log that future-you can read.</li>
+    </ul>
+
+    <p style="margin-top: 24px; color: var(--text-dim);">Use Claude Code to build it. The point is for you to learn how to combine hardware and software using AI as a force multiplier. You drive the project. Ask me when you are stuck on hardware safety or major design decisions. Ask Claude first for everything else.</p>
+  </div>
+
+  <!-- ===== TAB: SETUP ===== -->
+  <div class="tab-panel" id="panel-setup">
+    <h2 class="section-title">// 02 · Setup</h2>
+    <h3 class="subhead">First 45 minutes. Do this once. Never again.</h3>
+    <p class="lead">Goal: by the end of this tab, you have your tools installed, a GitHub repo, PlatformIO ready in VS Code, and Claude Code open in the project folder. After this, you spend the rest of the two weeks building.</p>
+
+    <div class="callout">
+      <strong>// IF YOU GET STUCK</strong>
+      Copy the command and the error you saw into Claude Code and ask. Do not burn 20 minutes guessing on setup. Setup is the boring part. Get past it fast.
+    </div>
+
+    <div class="setup-divider">// PART 1 · INSTALL THE TOOLS</div>
+
+    <div class="step expanded" data-step="1">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Install Git, Node, VS Code, Claude Code</div>
+        <div class="step-time">~15 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Open <strong>PowerShell</strong>. Press the Windows key, type "PowerShell", hit Enter.</p>
+        <p>Install everything with <code class="inline">winget</code>, Windows' built-in package manager:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="install-cmds">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-install-cmds"><span class="prompt-symbol">PS></span>winget install --id Git.Git -e
+<span class="prompt-symbol">PS></span>winget install --id OpenJS.NodeJS.LTS -e
+<span class="prompt-symbol">PS></span>winget install --id Microsoft.VisualStudioCode -e
+<span class="prompt-symbol">PS></span>winget install --id Anthropic.ClaudeCode -e
+<span class="prompt-symbol">PS></span>winget install --id Python.Python.3.12 -e</div>
+        </div>
+
+        <p>Close PowerShell after each install and open a fresh window before the next one if anything fails. New terminals pick up new tools.</p>
+
+        <p>Verify:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="verify-cmds">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-verify-cmds"><span class="prompt-symbol">PS></span>git --version
+<span class="prompt-symbol">PS></span>node --version
+<span class="prompt-symbol">PS></span>code --version
+<span class="prompt-symbol">PS></span>claude --version
+<span class="prompt-symbol">PS></span>python --version</div>
+        </div>
+
+        <p>All five commands should print version numbers. If any of them does not, restart your computer and try again before asking for help.</p>
+
+        <div class="step-check">All five commands print version numbers in a fresh PowerShell window.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="2">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Install the PlatformIO extension in VS Code</div>
+        <div class="step-time">~5 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Open VS Code from your Start menu or by running <code class="inline">code</code> in PowerShell.</p>
+        <p>Click the Extensions icon in the left sidebar (or press <code class="inline">Ctrl+Shift+X</code>). Search for "PlatformIO IDE" and install it. First install takes a few minutes since it downloads its own Python and toolchain. Let it finish.</p>
+        <p>Once installed, you will see a small PlatformIO icon in the left sidebar (a little alien head). That confirms it is loaded.</p>
+        <div class="callout">
+          <strong>// FALLBACK</strong>
+          If PlatformIO refuses to install (corporate proxy, antivirus, etc.), Arduino IDE 2.x is a workable backup for this project. Ask Claude to walk you through the Arduino-specific path. Most of the rest of this brief still applies.
+        </div>
+        <div class="step-check">VS Code is open and the PlatformIO icon is visible in the left sidebar.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="3">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Make a GitHub account (if you do not have one)</div>
+        <div class="step-time">~3 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Go to <a href="https://github.com/signup" target="_blank">github.com/signup</a> and create an account. Use an email you check. Pick a username you would put on a resume.</p>
+        <div class="step-check">You can sign in to github.com with your account.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="4">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Tell Git who you are</div>
+        <div class="step-time">~1 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Replace the email below with the one tied to your GitHub account, then run:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="git-config">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-git-config"><span class="prompt-symbol">PS></span>git config --global user.name "Jack Shelton"
+<span class="prompt-symbol">PS></span>git config --global user.email "your-github-email@example.com"
+<span class="prompt-symbol">PS></span>git config --global init.defaultBranch main</div>
+        </div>
+
+        <div class="step-check">No errors after running all three commands.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="5">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Create the project folder and Git repo</div>
+        <div class="step-time">~3 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Open PowerShell and run:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="mkdir-cmds">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-mkdir-cmds"><span class="prompt-symbol">PS></span>mkdir $HOME\projects
+<span class="prompt-symbol">PS></span>cd $HOME\projects
+<span class="prompt-symbol">PS></span>mkdir bike-motion-sensor
+<span class="prompt-symbol">PS></span>cd bike-motion-sensor
+<span class="prompt-symbol">PS></span>git init</div>
+        </div>
+
+        <p>You should see "Initialized empty Git repository". This folder is now tracked by Git.</p>
+        <div class="step-check">You are inside the bike-motion-sensor folder and git init ran successfully.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="6">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Drop in the starter files from Dad</div>
+        <div class="step-time">~2 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Move these three files into the root of <code class="inline">bike-motion-sensor</code>:</p>
+        <ul class="content-list">
+          <li><strong>CLAUDE.md</strong></li>
+          <li><strong>README.md</strong></li>
+          <li><strong>.gitignore</strong></li>
+        </ul>
+        <p>Then create a <code class="inline">docs</code> folder and move this HTML brief into it:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="mkdocs">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-mkdocs"><span class="prompt-symbol">PS></span>mkdir docs</div>
+        </div>
+
+        <p>Drop "Bike Motion Sensor Project.html" into <code class="inline">docs</code> via File Explorer. Final layout:</p>
+
+        <div class="terminal">
+          <div class="terminal-header"><span class="terminal-tag">tree</span></div>
+          <div class="terminal-body"><span class="comment">bike-motion-sensor\
+  .git\                                (hidden)
+  .gitignore
+  CLAUDE.md
+  README.md
+  docs\
+    Bike Motion Sensor Project.html</span></div>
+        </div>
+
+        <div class="step-check">All four files are in the correct places.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="7">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title">Create the GitHub repo and push</div>
+        <div class="step-time">~5 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Go to <a href="https://github.com/new" target="_blank">github.com/new</a>. Name the repo <code class="inline">bike-motion-sensor</code>. Public is fine. <strong>Do not</strong> check "Add a README", "Add .gitignore", or "Choose a license". You already have those locally.</p>
+        <p>Back in PowerShell, in your <code class="inline">bike-motion-sensor</code> folder:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="git-push">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-git-push"><span class="prompt-symbol">PS></span>git add .
+<span class="prompt-symbol">PS></span>git commit -m "Initial project structure with Phase 1 brief and CLAUDE.md"
+<span class="prompt-symbol">PS></span>git remote add origin https://github.com/&lt;your-username&gt;/bike-motion-sensor.git
+<span class="prompt-symbol">PS></span>git branch -M main
+<span class="prompt-symbol">PS></span>git push -u origin main</div>
+        </div>
+
+        <p>The first push opens a window asking you to sign in to GitHub. Sign in. Refresh your repo page in the browser. Your files should be there.</p>
+        <div class="step-check">Your code is visible at github.com/&lt;your-username&gt;/bike-motion-sensor.</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="8">
+      <div class="step-header">
+        <div class="step-num">8</div>
+        <div class="step-title">Open VS Code and Claude Code in the project</div>
+        <div class="step-time">~2 MIN</div>
+        <div class="step-chevron">▸</div>
+      </div>
+      <div class="step-body">
+        <p>From inside <code class="inline">bike-motion-sensor</code>:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="terminal-tag">PowerShell</span>
+            <button class="copy-btn" data-copy="open-cmd">COPY</button>
+          </div>
+          <div class="terminal-body" id="prompt-open-cmd"><span class="prompt-symbol">PS></span>code .
+<span class="prompt-symbol">PS></span>claude</div>
+        </div>
+
+        <p>The first command opens VS Code with your project. The second opens Claude Code in the terminal. Claude Code auto-loads <code class="inline">CLAUDE.md</code> as context.</p>
+        <p>For your first Claude message, head to the <strong>Using Claude</strong> tab and copy the Session Kickoff prompt. Fill in the blanks for Day 1.</p>
+        <div class="step-check">VS Code is open on the project and Claude Code is running with the kickoff prompt sent.</div>
+      </div>
+    </div>
+
+    <div class="setup-divider">// PART 2 · DAILY GIT REFERENCE</div>
+
+    <h3 class="subhead">The Mental Model</h3>
+    <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 14px;">Git tracks history. Three places code lives:</p>
+
+    <div class="terminal">
+      <div class="terminal-body"><span class="comment">[your folder]   →   [staging area]   →   [local repo]   →   [GitHub]
+                  git add               git commit           git push</span></div>
+    </div>
+
+    <ul class="content-list" style="margin-top: 16px;">
+      <li><strong>Your folder</strong> is where you edit files.</li>
+      <li><strong>Staging area</strong> is where you mark files as ready to save without saving them yet.</li>
+      <li><strong>Local repo</strong> is the saved snapshot on your computer.</li>
+      <li><strong>GitHub</strong> is the saved snapshot in the cloud.</li>
+    </ul>
+
+    <p style="margin-top: 16px; color: var(--text-dim); font-size: 14px;">Daily rhythm: <code class="inline">git add</code> → <code class="inline">git commit</code> → <code class="inline">git push</code>.</p>
+
+    <h3 class="subhead" style="margin-top: 32px;">The Daily Commands</h3>
+
+    <div class="git-grid">
+      <div class="git-cmd"><code>git status</code><div class="desc"><strong>What changed?</strong> Run constantly. Free, prevents mistakes.</div></div>
+      <div class="git-cmd"><code>git add .</code><div class="desc"><strong>Stage everything.</strong> The dot means "every changed file".</div></div>
+      <div class="git-cmd"><code>git commit -m "..."</code><div class="desc"><strong>Save a snapshot.</strong> Write what you did. No "wip" or "stuff".</div></div>
+      <div class="git-cmd"><code>git push</code><div class="desc"><strong>Upload to GitHub.</strong> After your first push, this is all you need.</div></div>
+      <div class="git-cmd"><code>git log --oneline</code><div class="desc"><strong>What have I done?</strong> Recent commits, one per line.</div></div>
+      <div class="git-cmd"><code>git diff &lt;file&gt;</code><div class="desc"><strong>What changed in this file?</strong> When you cannot remember.</div></div>
+      <div class="git-cmd"><code>git restore &lt;file&gt;</code><div class="desc"><strong>Undo my changes to this file.</strong> Throws away changes since the last commit. Be sure.</div></div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 32px;">Good vs Bad Commit Messages</h3>
+
+    <div class="compare">
+      <div class="compare-card good">
+        <div class="compare-label">// GOOD</div>
+        <div class="quote">ICM-20948 reads raw accel + gyro on serial monitor
+
+Add SD card binary log writer at 200 Hz
+
+Mount: bottle cage bracket v2 with EPDM gasket</div>
+        <div class="why">Future-you knows what changed without reading the code.</div>
+      </div>
+      <div class="compare-card bad">
+        <div class="compare-label">// BAD</div>
+        <div class="quote">stuff
+
+asdf
+
+fixed it
+
+wip</div>
+        <div class="why">When you are hunting for "the version that worked yesterday", you have no idea which commit had what.</div>
+      </div>
+    </div>
+
+    <div class="setup-divider">// PART 3 · SECRETS</div>
+
+    <p class="lead">Your repo is public. Anyone can read what you push.</p>
+
+    <div class="callout danger">
+      <strong>// NEVER COMMIT</strong>
+      Wi-Fi passwords, API keys (future phases), personal info like home address or phone numbers, anything that looks like a token.
+    </div>
+
+    <p style="color: var(--text-dim); font-size: 14px;">In Phase 1 you do not have any secrets yet. Just keep the habit: <code class="inline">.gitignore</code> blocks <code class="inline">.env</code> and <code class="inline">config.h</code> files. If you ever add real credentials, they live in those files and never get committed.</p>
+
+    <h3 class="subhead" style="margin-top: 32px;">The Habit That Saves You</h3>
+    <p style="color: var(--text-dim); font-size: 15px;"><strong style="color: var(--cyan);">Commit early, commit often.</strong> Every time something works that did not work before, commit. Working state to commit. Always.</p>
+    <p style="color: var(--text-dim); font-size: 14px; margin-top: 8px;">When something breaks, you want to roll back to "10 minutes ago when it worked", not "this morning before I changed everything".</p>
+  </div>
+
+  <!-- ===== TAB: ARCHITECTURE ===== -->
+  <div class="tab-panel" id="panel-arch">
+    <h2 class="section-title">// 03 · Architecture</h2>
+    <h3 class="subhead">Three paths considered. One chosen. Defend it back to me.</h3>
+    <p class="lead">Read all three. Make sure you understand why we picked B over A and C. You should be able to explain it to me in plain English. If you cannot, ask Claude until you can.</p>
+
+    <div class="arch-card not-recommended">
+      <div class="arch-badge no">SKIP</div>
+      <div class="arch-tag">OPTION A</div>
+      <h3>On-Device TinyML</h3>
+      <p>The microcontroller runs a small machine learning model that classifies tricks in real time. The device decides "that was a bunny hop" right when it happens.</p>
+      <div class="arch-grid">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Lowest latency. Live detection.</li>
+            <li>Standalone. No PC needed.</li>
+            <li>Sounds cool at parties.</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>You cannot iterate the model without reflashing the device.</li>
+            <li>You need a labeled dataset before you can train, and we do not have one yet.</li>
+            <li>TinyML toolchains are rough for a first ML project.</li>
+            <li>You learn the wrong skill first: deployment before modeling.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="dad-take">Cool eventual goal. Wrong starting point. We need the data and a working model before we worry about getting it to run on a 240 MHz chip.</div>
+    </div>
+
+    <div class="arch-card recommended">
+      <div class="arch-badge go">RECOMMENDED</div>
+      <div class="arch-tag">OPTION B</div>
+      <h3>Log to SD, Process Offline in Python</h3>
+      <p>A simple firmware loop samples the IMU at 200 Hz and writes binary records to an SD card. After the ride, pull the card, open the file in Python, and iterate forever on visualization, filtering, and eventually classification.</p>
+
+      <h4 style="font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; color: var(--cyan); margin: 16px 0 8px; text-transform: uppercase;">Data Flow</h4>
+      <div class="code">[ICM-20948] → I²C → [ESP32-S3] → SPI → [microSD card]
+                                  +
+                            [GoPro footage]   ← synced via 3-tap event at ride start</div>
+
+      <div class="arch-grid">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Lowest build complexity. Real chance to ship Phase 1 in two weeks.</li>
+            <li>Raw data is preserved. You can re-process forever as your ML skills grow.</li>
+            <li>Full desktop Python: pandas, numpy, matplotlib, scipy, jupyter.</li>
+            <li>Hardware path stays unchanged when we add BLE or Wi-Fi in Phase 3.</li>
+            <li>Fits the $80 budget cleanly.</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>No live feedback during the ride. That is a Phase 3 problem.</li>
+            <li>Pulling the SD card every time feels low-tech. It is also reliable.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch-card">
+      <div class="arch-badge later">LATER</div>
+      <div class="arch-tag">OPTION C</div>
+      <h3>BLE Stream to a Phone App</h3>
+      <p>The IMU samples and streams over Bluetooth Low Energy to a custom mobile app that displays motion in real time and stores it.</p>
+      <div class="arch-grid">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Cooler demos. The phone shows live motion.</li>
+            <li>Path to live feedback and gamification.</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>BLE protocol design, app development, and battery management all at once.</li>
+            <li>Multiple new tools to learn before you have any data to model.</li>
+            <li>Adds a week or more to the build before you capture a single ride.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="dad-take">This is Phase 3. Plan it. Do not start it. Build Option B first.</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: HARDWARE ===== -->
+  <div class="tab-panel" id="panel-hardware">
+    <h2 class="section-title">// 04 · Hardware</h2>
+    <h3 class="subhead">Shopping list (Option B build).</h3>
+    <p class="lead">Have me order these. Most come from Adafruit direct. Total should land around $80. Tools we already have: soldering iron, multimeter, breadboard, 3D printer.</p>
+
+    <table class="hw-table">
+      <thead>
+        <tr><th>Component</th><th>What to look for</th><th>Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ESP32 Dev Board</td>
+          <td><a href="https://www.adafruit.com/product/5323" target="_blank">Adafruit Feather ESP32-S3 (PID 5323)</a>. Wi-Fi + BLE, USB-C, on-board Li-Po charging, Stemma QT port. 8 MB flash, no PSRAM is fine.</td>
+          <td class="cost">$17.50</td>
+        </tr>
+        <tr>
+          <td>9-Axis IMU</td>
+          <td><a href="https://www.adafruit.com/product/4554" target="_blank">Adafruit ICM-20948 with Stemma QT (PID 4554)</a>. Accel + gyro + magnetometer, 200+ Hz raw, I²C.</td>
+          <td class="cost">$24.95</td>
+        </tr>
+        <tr>
+          <td>Stemma QT Cable</td>
+          <td><a href="https://www.adafruit.com/product/4399" target="_blank">100 mm Stemma QT to Stemma QT cable (PID 4399)</a>.</td>
+          <td class="cost">$0.95</td>
+        </tr>
+        <tr>
+          <td>microSD Breakout</td>
+          <td><a href="https://www.adafruit.com/product/254" target="_blank">microSD card breakout, SPI (PID 254)</a>. Solder headers and wire to the Feather.</td>
+          <td class="cost">$7.50</td>
+        </tr>
+        <tr>
+          <td>microSD Card</td>
+          <td>16 GB Class 10. SanDisk or Samsung from Amazon. Cheap, fast enough.</td>
+          <td class="cost">$8</td>
+        </tr>
+        <tr>
+          <td>Battery</td>
+          <td><a href="https://www.adafruit.com/product/258" target="_blank">1200 mAh Li-Po, JST-PH 2-pin (PID 258)</a>. Plugs directly into the Feather.</td>
+          <td class="cost">$9.95</td>
+        </tr>
+        <tr>
+          <td>Power Switch</td>
+          <td><a href="https://www.adafruit.com/product/805" target="_blank">SPDT slide switch (PID 805)</a>. Wired inline on battery positive.</td>
+          <td class="cost">$0.95</td>
+        </tr>
+        <tr>
+          <td>Status LED + Resistor</td>
+          <td>5 mm diffused LED any color, plus 330 Ω resistor. Probably on bench already.</td>
+          <td class="cost">$1</td>
+        </tr>
+        <tr>
+          <td>Headers + Wire</td>
+          <td>Female headers for SD breakout. 22-26 AWG hookup wire. Heat shrink.</td>
+          <td class="cost">$5</td>
+        </tr>
+        <tr>
+          <td>Mount Hardware</td>
+          <td>M5 button-head screws (12-16 mm), EPDM rubber sheet (1 mm), zip ties. Hardware store.</td>
+          <td class="cost">$8</td>
+        </tr>
+        <tr>
+          <td>Enclosure + Bracket</td>
+          <td>3D printed at home. PLA or PETG. Free.</td>
+          <td class="cost">$0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hw-total">
+      <span class="label">EST. TOTAL (BEFORE SHIPPING)</span>
+      <span class="value">~$84</span>
+    </div>
+
+    <div class="callout info" style="margin-top: 16px;">
+      <strong>// ON STOCK</strong>
+      Adafruit sometimes runs out of the Feather ESP32-S3 PID 5323. If it is out at adafruit.com, check Pimoroni, DigiKey, or Mouser. They all sell the same part. Do not substitute a different ESP32 board without checking with Dad. Pin-out and Stemma QT matter.
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">Order Checklist</h3>
+    <p class="lead">Check these off as Dad orders them.</p>
+    <div class="checklist" data-section="hardware">
+      <div class="check-item" data-id="hw-1"><div class="check-box"></div><div class="check-text"><strong>Adafruit Feather ESP32-S3</strong>PID 5323 (no PSRAM is fine)</div></div>
+      <div class="check-item" data-id="hw-2"><div class="check-box"></div><div class="check-text"><strong>ICM-20948 IMU breakout</strong>PID 4554, Stemma QT version</div></div>
+      <div class="check-item" data-id="hw-3"><div class="check-box"></div><div class="check-text"><strong>Stemma QT cable</strong>PID 4399, 100 mm</div></div>
+      <div class="check-item" data-id="hw-4"><div class="check-box"></div><div class="check-text"><strong>microSD breakout + 16 GB card</strong>PID 254 + Amazon SanDisk</div></div>
+      <div class="check-item" data-id="hw-5"><div class="check-box"></div><div class="check-text"><strong>1200 mAh Li-Po battery</strong>PID 258</div></div>
+      <div class="check-item" data-id="hw-6"><div class="check-box"></div><div class="check-text"><strong>Slide switch + LED + resistor</strong>PID 805 plus parts from bench</div></div>
+      <div class="check-item" data-id="hw-7"><div class="check-box"></div><div class="check-text"><strong>Headers, wire, heat shrink</strong>Whatever the bench is missing</div></div>
+      <div class="check-item" data-id="hw-8"><div class="check-box"></div><div class="check-text"><strong>M5 screws, EPDM rubber, zip ties</strong>Hardware store run</div></div>
+    </div>
+
+    <div class="callout danger" style="margin-top: 24px;">
+      <strong>// LITHIUM BATTERY SAFETY</strong>
+      Never short the battery leads. Never charge an unattended Li-Po overnight on a desk. Never puncture the cell. If the battery ever swells, gets hot to the touch, or smells like sweet plastic, unplug everything and find Dad. Li-Po fires are real.
+    </div>
+  </div>
+
+  <!-- ===== TAB: FIRMWARE ===== -->
+  <div class="tab-panel" id="panel-firmware">
+    <h2 class="section-title">// 05 · Firmware</h2>
+    <h3 class="subhead">What runs on the ESP32.</h3>
+    <p class="lead">Small program. Big responsibility. Read the IMU 200 times per second, write each sample to the SD card without dropping anything, and survive a bumpy ride without crashing or running out of memory.</p>
+
+    <div class="panel">
+      <h4>// THE LOOP, IN PLAIN ENGLISH</h4>
+      <ul>
+        <li>On boot: initialize the IMU over I²C, initialize the SD card over SPI, open a new log file with a name like <code class="inline">ride_001.bin</code>.</li>
+        <li>If the user button is pressed and logging is off, start logging. If pressed again, stop logging and close the file.</li>
+        <li>While logging: every 5 milliseconds (200 Hz), read accel x/y/z, gyro x/y/z, magnetometer x/y/z, grab a microsecond timestamp, write a binary record to a small RAM buffer.</li>
+        <li>When the buffer is full enough, flush it to SD. Flushing is slow so it has to happen in a way that does not block sampling.</li>
+        <li>Blink the status LED according to state: solid is powered, slow is logging, fast is SD error or no card.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h4>// THE STACK</h4>
+      <ul>
+        <li><strong>Framework:</strong> Arduino on top of PlatformIO. Most examples and libraries are written for Arduino on ESP32.</li>
+        <li><strong>IMU library:</strong> <code class="inline">Adafruit ICM20X</code> from the PlatformIO Library Manager. Wraps the ICM-20948 registers in a clean C++ API.</li>
+        <li><strong>SD library:</strong> <code class="inline">SdFat</code> by Bill Greiman. Faster than the built-in <code class="inline">SD.h</code> when you are pushing 200 Hz binary writes.</li>
+        <li><strong>Timing:</strong> A hardware timer interrupt at 200 Hz pushes "time to sample" events. A FreeRTOS task on Core 1 does the IMU read. A second task on Core 0 owns the SD flushes. The ESP32-S3 has two cores; we use both.</li>
+        <li><strong>Buffer:</strong> A ring buffer in RAM, sized for a few hundred records. If the SD card stalls for a moment, the buffer absorbs it.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h4>// THE BINARY LOG FORMAT</h4>
+      <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 12px;">Each record is fixed-size. Easy to parse in Python. Easy to count.</p>
+      <div class="code">struct Sample {
+  uint32_t t_us;     // microseconds since boot
+  int16_t ax, ay, az;  // raw accelerometer counts
+  int16_t gx, gy, gz;  // raw gyroscope counts
+  int16_t mx, my, mz;  // raw magnetometer counts
+  uint8_t flags;     // bit 0: button pressed, bit 1: SD error
+  uint8_t reserved;  // padding to 24 bytes (aligned)
+};</div>
+      <p style="font-size: 14px; color: var(--text-dim); margin-top: 12px;">24 bytes per sample × 200 Hz = 4.8 KB/sec = about 17 MB per hour of ride. A 16 GB card holds nearly 1000 hours. Storage is not the bottleneck.</p>
+    </div>
+
+    <div class="panel">
+      <h4>// WHY RAW COUNTS, NOT FLOATS</h4>
+      <ul>
+        <li>Half the bytes. Twice as fast to write.</li>
+        <li>No precision loss. You convert to g and degrees-per-second in Python, where math is free.</li>
+        <li>If you ever change the IMU's range setting, the raw counts still mean the same thing within their range. The scale factor moves to a header field.</li>
+      </ul>
+    </div>
+
+    <div class="qa">
+      <h5>Q · Where Does The IMU Range Setting Live?</h5>
+      <p style="color: var(--text-dim);">Accel can be ±2g, ±4g, ±8g, ±16g. Gyro can be ±250, ±500, ±1000, ±2000 dps. For MTB jumps and drops, accel impacts can hit 8g or more. Gyro spin during whips or hard berms can hit 500 dps. Start at ±8g and ±1000 dps. Document this in your firmware in a comment block at the top.</p>
+    </div>
+
+    <div class="qa">
+      <h5>Q · How Do You Know Samples Are Not Being Dropped?</h5>
+      <p style="color: var(--text-dim);">Every sample carries a microsecond timestamp. In Python, after loading, compute the time delta between consecutive samples. If a delta is much greater than 5000 microseconds, that gap is a dropped sample. A healthy log has greater than 99% of deltas in a tight band around 5000 µs.</p>
+    </div>
+
+    <div class="qa">
+      <h5>Q · What Happens If The Card Pulls Out Mid-Ride?</h5>
+      <p style="color: var(--text-dim);">Bad. The file is unclosed and the last few KB of data are gone. Mitigation: lock the card mechanically into the slot with the enclosure design. Belt-and-suspenders: flush the file every 1 second so an unclean shutdown loses at most 1 second of data.</p>
+    </div>
+
+    <div class="callout info" style="margin-top: 24px;">
+      <strong>// BUILD ORDER MATTERS</strong>
+      Do not write the full firmware in one go. Build it in five chunks: (1) blink the LED, (2) read the IMU and print to serial, (3) write a hello string to the SD card, (4) combine: read IMU and write CSV to SD, (5) upgrade to binary + timer + dual-core. Each is a commit. Each is a session.
+    </div>
+  </div>
+
+  <!-- ===== TAB: DATA CAPTURE ===== -->
+  <div class="tab-panel" id="panel-data">
+    <h2 class="section-title">// 06 · Data Capture &amp; Sync</h2>
+    <h3 class="subhead">Getting clean labeled data is most of the project.</h3>
+    <p class="lead">Phase 1 lives or dies on data quality. If the data is clean, labeled, and synced to video, Phase 2 is easy. If it is not, Phase 2 is impossible.</p>
+
+    <h3 class="subhead" style="margin-top: 32px;">The Sync Protocol</h3>
+    <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 14px;">Every ride starts and ends with the same ritual. Burn it into muscle memory.</p>
+
+    <div class="protocol">
+      <div class="protocol-label">// THE RIDE START / END RITUAL</div>
+      <h3>Same five steps. Every ride.</h3>
+      <ol>
+        <li><strong>Power on the device.</strong> Confirm LED is solid. SD card is inserted.</li>
+        <li><strong>Mount the device.</strong> Bottle cage bolts. EPDM gasket between case and frame. Tighten by hand, do not crank.</li>
+        <li><strong>Start the GoPro recording.</strong> Confirm the red dot.</li>
+        <li><strong>Three sharp taps</strong> on top of the device while the GoPro is filming the bike. Spaced about half a second apart. Hard enough to spike the accelerometer.</li>
+        <li><strong>Push the log button</strong> on the device. LED shifts to slow blink.</li>
+      </ol>
+    </div>
+
+    <p style="color: var(--text-dim); font-size: 14px; margin-top: 16px;">At the end of the ride: stop the log button, three more taps for the end sync, stop the GoPro. The taps at the end are belt-and-suspenders. If the IMU and GoPro clocks drift, you can correct from either end.</p>
+
+    <h3 class="subhead" style="margin-top: 36px;">Why The Sync Taps Work</h3>
+    <ul class="content-list">
+      <li>Each tap shows up as a clean accel spike of several g, visible in the data as a tall narrow pulse.</li>
+      <li>The same tap is audible in the GoPro track and visible if you can see the bike.</li>
+      <li>You convert the tap event to a frame number in the GoPro and a sample number in the IMU log. Subtract: you have the time offset.</li>
+      <li>Once the offset is known, you can label tricks in the video and translate the frame number to an IMU sample range.</li>
+    </ul>
+
+    <h3 class="subhead" style="margin-top: 36px;">The Python Workflow</h3>
+
+    <div class="panel">
+      <h4>// LOADER</h4>
+      <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 12px;">A function <code class="inline">load_ride(path)</code> that reads the binary file and returns a pandas DataFrame with columns: <code class="inline">t_us, ax, ay, az, gx, gy, gz, mx, my, mz, flags</code>. Add a derived column <code class="inline">t_s</code> in seconds since boot.</p>
+      <p style="font-size: 14px; color: var(--text-dim);">Bonus: a second function that converts raw counts to physical units. ±8g range means each count is 8/32768 ≈ 0.000244 g. ±1000 dps range means each gyro count is 1000/32768 ≈ 0.0305 degrees/sec. Magnetometer scale is in the ICM-20948 datasheet.</p>
+    </div>
+
+    <div class="panel">
+      <h4>// PLOTTING NOTEBOOK</h4>
+      <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 12px;">A Jupyter notebook that:</p>
+      <ul>
+        <li>Loads a ride file with the loader function above.</li>
+        <li>Plots accelerometer (3 axes) as a stacked time series across the whole ride.</li>
+        <li>Plots gyroscope (3 axes) below it.</li>
+        <li>Plots magnetometer (3 axes) below that.</li>
+        <li>Has zoom controls so you can isolate a 5-second window and see one trick clearly.</li>
+        <li>Computes summary stats: ride duration, sample count, dropped-sample count, max accel magnitude, max gyro magnitude.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h4>// LABELING HELPER</h4>
+      <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 12px;">Open the GoPro file alongside the IMU plot. Watch the run. When you see a feature happen, note the GoPro timestamp and a short label like <code class="inline">drop_1m</code>, <code class="inline">jump_small</code>, <code class="inline">berm_left</code>, <code class="inline">bunny_hop</code>. The notebook writes these into a <code class="inline">labels.csv</code> next to the ride file. The CSV columns: <code class="inline">ride_id, t_start_s, t_end_s, label, notes</code>.</p>
+      <p style="font-size: 14px; color: var(--text-dim);">Phase 2 will train on this CSV. Phase 1 just makes sure we can produce it cleanly.</p>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">What Each Feature Looks Like In The Data</h3>
+    <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 14px;">Before you ever ride, build a mental model of what each event should look like. After your first ride, check whether reality matches.</p>
+
+    <div class="qa">
+      <h5>SIGNATURE · DROP</h5>
+      <p style="color: var(--text-dim);">A short freefall where accel z drops near zero, followed by a sharp positive accel spike on landing (could be 4 to 10 g depending on drop height and suspension). Gyro stays roughly quiet through the air, may pick up on landing.</p>
+    </div>
+
+    <div class="qa">
+      <h5>SIGNATURE · JUMP</h5>
+      <p style="color: var(--text-dim);">Distinct ramp-up of pitch from compressing into the lip, freefall while airborne (accel z near zero again), then a softer landing spike than a drop because the rider rotates the bike to match the landing slope.</p>
+    </div>
+
+    <div class="qa">
+      <h5>SIGNATURE · BERM</h5>
+      <p style="color: var(--text-dim);">Sustained accel in the lateral axis (y in our frame: forward is x, left is y, up is z) for one to several seconds while the bike rounds the berm. Roll angle from the gyro should integrate to a banked attitude that holds steady through the turn.</p>
+    </div>
+
+    <div class="qa">
+      <h5>SIGNATURE · BUNNY HOP</h5>
+      <p style="color: var(--text-dim);">Quick pitch up from rear wheel lift, brief airtime (much shorter than a real jump), then pitch back down. Smaller accel signatures than a drop because there is no ramp and no big landing impact.</p>
+    </div>
+
+    <div class="qa">
+      <h5>SIGNATURE · ROCK GARDEN</h5>
+      <p style="color: var(--text-dim);">High-frequency noise across all three accel axes. Magnitude can be high but the spikes are short. Distinctive in the time-domain plot, and very distinctive in a spectrogram.</p>
+    </div>
+
+    <div class="callout">
+      <strong>// FIRST RIDE GOAL</strong>
+      One drop, three small jumps, two berms, one rock garden, one bunny hop. Same trail, same features, two laps if Jack feels good. Do not chase variety. Chase data we can actually point at and learn from.
+    </div>
+  </div>
+
+  <!-- ===== TAB: PLAN ===== -->
+  <div class="tab-panel" id="panel-plan">
+    <h2 class="section-title">// 07 · Two-Week Plan</h2>
+    <h3 class="subhead">10 sessions. Click a session to expand.</h3>
+    <p class="lead">Target schedule. Adjust if you slip, but tell me when you are slipping. If you change the plan, regenerate this HTML so checklists match.</p>
+
+    <div class="day-grid" id="day-grid"></div>
+  </div>
+
+  <!-- ===== TAB: USING CLAUDE ===== -->
+  <div class="tab-panel" id="panel-claude">
+    <h2 class="section-title">// 08 · Working with Claude Code</h2>
+    <h3 class="subhead">This is the part I really care about.</h3>
+    <p class="lead">Most of this project will be outside what you have done before. That is the point. Claude is your partner. The skill you are building here is knowing how to use AI well. Soldering and C++ come along for the ride. Get this right and the rest gets easier.</p>
+
+    <h3 class="subhead" style="margin-top: 32px;">The First Thing You Say (every session)</h3>
+    <p style="color: var(--text-dim); margin-bottom: 12px; font-size: 14px;">Open Claude Code in your project folder. The first message of every session should give it full context.</p>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-title">// SESSION KICKOFF PROMPT</span>
+        <button class="copy-btn" data-copy="kickoff">COPY</button>
+      </div>
+      <div class="prompt-body" id="prompt-kickoff">I'm building a bike motion sensor. The full Phase 1 brief is in <span class="blank">docs/Bike Motion Sensor Project.html</span> in this repo. Read it first, then read CLAUDE.md for the current decisions log.
+
+Quick context: I'm 14, mostly new to microcontrollers, mostly new to Python, comfortable with soldering. My dad has an EE degree and I'll ask him for hardware safety help.
+
+Right now I'm on <span class="blank">Day X, [session title]</span>.
+What I just finished: <span class="blank">[last working state]</span>.
+What I'm trying to do next: <span class="blank">[next goal]</span>.
+
+Before you write any code, tell me your plan. I'll push back if it doesn't make sense, and then we'll build it one small piece at a time.</div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">Reporting Bugs (the high-leverage move)</h3>
+    <p style="color: var(--text-dim); margin-bottom: 12px; font-size: 14px;">When something breaks, do not paste an error and ask "fix this". Use this template. Single biggest difference between a 5-minute fix and a 2-hour spiral.</p>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-title">// BUG REPORT PROMPT</span>
+        <button class="copy-btn" data-copy="bug">COPY</button>
+      </div>
+      <div class="prompt-body" id="prompt-bug">Something is wrong. Here's the full picture:
+
+**What I expected to happen:**
+<span class="blank">[describe what should have happened in plain English]</span>
+
+**What actually happened:**
+<span class="blank">[describe what you saw]</span>
+
+**Code I'm running:**
+```
+<span class="blank">[paste the relevant code]</span>
+```
+
+**Output / error:**
+```
+<span class="blank">[paste serial monitor output or error message]</span>
+```
+
+**What I already tried:**
+- <span class="blank">[thing 1]</span>
+- <span class="blank">[thing 2]</span>
+
+What's the most likely cause? Walk me through how you'd debug it.</div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">Asking Claude to Explain Code</h3>
+    <p style="color: var(--text-dim); margin-bottom: 12px; font-size: 14px;">If Claude writes more than ~30 lines and you do not understand all of it, stop. Use this prompt before moving on. If you cannot explain it, you do not own it.</p>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-title">// EXPLAIN-IT-BACK PROMPT</span>
+        <button class="copy-btn" data-copy="explain">COPY</button>
+      </div>
+      <div class="prompt-body" id="prompt-explain">Walk me through this code line by line. I want to understand what each part does, not just trust that it works. For anything I should know but might miss (gotchas, why you chose this approach over an obvious alternative, common bugs), call it out.
+
+After you explain, ask me a couple of questions to check if I actually understood. Do not accept "yeah I get it" as an answer.</div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">Decisions Log Update Prompt</h3>
+    <p style="color: var(--text-dim); margin-bottom: 12px; font-size: 14px;">At the end of each session, if anything was decided, ask Claude to write the entry. Future sessions read CLAUDE.md and pick up the context.</p>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-title">// DECISIONS LOG PROMPT</span>
+        <button class="copy-btn" data-copy="decisions">COPY</button>
+      </div>
+      <div class="prompt-body" id="prompt-decisions">Add a Decisions Log entry to CLAUDE.md for today. Format:
+
+- **Date:** <span class="blank">[YYYY-MM-DD]</span>
+- **Decision:** <span class="blank">[what we picked]</span>
+- **Alternatives considered:** <span class="blank">[what we did not pick]</span>
+- **Why:** <span class="blank">[the reason in one or two sentences]</span>
+
+Keep it short. Future-me reading this should be able to answer "why did we do it this way" without re-deriving the whole thing.</div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 36px;">Bad Prompts vs Good Prompts</h3>
+    <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 14px;">Same underlying question. Wildly different results.</p>
+
+    <div class="compare">
+      <div class="compare-card bad">
+        <div class="compare-label">// BAD</div>
+        <div class="quote">help me with the IMU</div>
+        <div class="why">Claude does not know what IMU you have, what library, what wiring, or what specific problem. Best case it gives a generic tutorial. Worst case it sends you down a wrong path.</div>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-label">// GOOD</div>
+        <div class="quote">I have an Adafruit ICM-20948 (PID 4554) connected to a Feather ESP32-S3 via Stemma QT (I²C). I'm using the Adafruit ICM20X library. I want a minimal sketch that prints raw accel x/y/z at 200 Hz to the serial monitor. Show me the code and explain how the I²C clock speed affects the maximum sample rate.</div>
+        <div class="why">Specific hardware. Specific library. Specific goal. Specific output format. You get usable code and learn something on the way.</div>
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-card bad">
+        <div class="compare-label">// BAD</div>
+        <div class="quote">it doesn't work</div>
+        <div class="why">No info. Claude has to guess. You get five questions back and waste a turn.</div>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-label">// GOOD</div>
+        <div class="quote">My ESP32 sees the SD card on boot (Card type: SDHC, Size: 14.8 GB), but every call to file.write() returns 0 bytes written. I'm using SdFat. Here's my init code... Here's the serial output... Could this be a chip select pin conflict with the IMU?</div>
+        <div class="why">Symptom. Evidence. Hypothesis. Claude can actually help.</div>
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-card bad">
+        <div class="compare-label">// BAD</div>
+        <div class="quote">make the logging thing</div>
+        <div class="why">"The logging thing" could be 10 different functions. Claude picks one and you spend 30 minutes redirecting it.</div>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-label">// GOOD</div>
+        <div class="quote">Write a function logSample(Sample s) that appends a 24-byte binary record to a buffer. When the buffer hits 4 KB, flush it to a file. Function should be self-contained and testable. Don't touch the IMU read code yet; that's a separate piece.</div>
+        <div class="why">Function name. Inputs. Outputs. Logic. Scope. You get exactly what you asked for.</div>
+      </div>
+    </div>
+
+    <div class="panel" style="border-color: var(--lime); margin-top: 32px;">
+      <h4 style="color: var(--lime);">// CORE HABITS · DO THESE EVERY SESSION</h4>
+      <ul>
+        <li><strong>Plan before code.</strong> Always: "Tell me your plan first. Don't write code yet." Read it. Push back if it is weird.</li>
+        <li><strong>Small pieces.</strong> Blink LED. Then read IMU. Then write SD. Then combine. Each piece is a commit.</li>
+        <li><strong>Use git.</strong> Every working state is a commit. <code style="color:var(--cyan); background:var(--bg); padding:2px 6px; font-size:12px;">git commit -m "what works now"</code>. If something breaks, roll back.</li>
+        <li><strong>Test in isolation.</strong> Before combining two things, prove each works alone.</li>
+        <li><strong>Read the code Claude writes.</strong> Out loud if you have to. If you cannot explain it, ask for the explain-it-back prompt.</li>
+        <li><strong>Update the Decisions Log.</strong> At end of session if anything got decided. Use the prompt above.</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="border-color: var(--red);">
+      <h4 style="color: var(--red);">// AVOID THESE TRAPS</h4>
+      <ul>
+        <li><strong>Do not ask Claude to "just make it work."</strong> You learn nothing and the bug count goes up.</li>
+        <li><strong>Do not accept 200 lines of code with no explanation.</strong> That is how a project becomes a black box you cannot fix.</li>
+        <li><strong>Do not rewrite working code.</strong> If something works, commit it before changing anything else.</li>
+        <li><strong>Do not paste the same error 5 times hoping for a different answer.</strong> If a fix does not work twice, change your approach.</li>
+        <li><strong>Do not keep going when you are frustrated.</strong> Walk away for 15 minutes. Half the time the answer is obvious after a break.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== TAB: STUCK ===== -->
+  <div class="tab-panel" id="panel-stuck">
+    <h2 class="section-title">// 09 · When Stuck</h2>
+    <h3 class="subhead">You will get stuck. Here is the playbook.</h3>
+    <p class="lead">Every real project has moments where nothing works and it feels like you will never finish. That is normal. Engineers spend more time stuck than building. The difference is they have a routine. Here is yours.</p>
+
+    <div class="protocol">
+      <div class="protocol-label">// THE 30-MINUTE PROTOCOL</div>
+      <h3>Stuck for 30 minutes? Run this.</h3>
+      <ol>
+        <li><strong>Write down what you are seeing.</strong> Not in your head. On paper or in a doc. Symptoms, error messages, what changed since it last worked.</li>
+        <li><strong>Write down what you tried.</strong> Including things that did not help. Stops you from going in circles.</li>
+        <li><strong>Write down what you expect to happen, and why.</strong> Often the bug is in your assumptions, not your code.</li>
+        <li><strong>Now talk to Claude.</strong> Use the bug report template. Half the time you figure it out while writing the prompt.</li>
+        <li><strong>If Claude's first answer does not fix it,</strong> tell it what you tried and what happened. Do not just paste the same prompt with a new error.</li>
+        <li><strong>Still stuck after 60 total minutes?</strong> Stand up. Drink water. Walk around. Come back fresh. If still stuck after that, see the escalation ladder below.</li>
+      </ol>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 40px;">Escalation Ladder</h3>
+    <p style="color: var(--text-dim); margin-bottom: 8px; font-size: 14px;">When you hit a wall, here is who to ask in what order. Do not skip steps unless it is a safety issue.</p>
+
+    <div class="ladder">
+      <div class="rung">
+        <div class="rung-num">1</div>
+        <div class="rung-content">
+          <h4>Ask Yourself</h4>
+          <p>Run the 30-minute protocol above. Write down what you see, what you tried, what you expect. This alone solves about a third of bugs.</p>
+          <span class="who self">YOU</span>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="rung-num">2</div>
+        <div class="rung-content">
+          <h4>Ask Claude</h4>
+          <p>Code questions, library usage, debugging, math, signal interpretation, "why does this work this way?". Claude is way faster than I am for these. Use the bug report template.</p>
+          <span class="who claude">CLAUDE</span>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="rung-num">3</div>
+        <div class="rung-content">
+          <h4>Search the Web</h4>
+          <p>If Claude gives you something that seems off, sanity-check on Adafruit forums, Reddit r/esp32, the SdFat GitHub issues, or the ICM-20948 datasheet. Especially for hardware-specific quirks.</p>
+          <span class="who self">YOU</span>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="rung-num warn">4</div>
+        <div class="rung-content">
+          <h4>Ask Dad</h4>
+          <p><strong style="color: var(--amber);">Always come to me first for hardware safety.</strong> Anything that might damage parts or hurt you. Battery wiring, polarity, voltage, current, soldering near components, lithium safety. Also come to me for major design decisions, scope changes, or if you have been spinning for over an hour with no progress.</p>
+          <span class="who dad">DAD</span>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="rung-num stop">!</div>
+        <div class="rung-content">
+          <h4>STOP and Get Dad NOW</h4>
+          <p>Battery getting hot. Battery swelling. Smoke. Burning smell. Anything melting. A wire glowing. Sparks. <strong style="color: var(--red);">Unplug everything and come find me immediately.</strong> Do not try to fix it. Do not ask Claude. Do not finish the test. Not negotiable.</p>
+          <span class="who stop">SAFETY</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 40px;">Common Bugs You Will Probably Hit</h3>
+    <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 14px;">Click each one to see typical causes and what to check first.</p>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag imu">IMU</span>
+        <span class="bug-symptom">ICM-20948 not detected on I²C (i2cdetect shows nothing)</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>Stemma QT cable is unseated. Click it in until it snaps.</li>
+          <li>Wrong I²C bus selected in code (ESP32-S3 has multiple).</li>
+          <li>Power not reaching the board. The IMU board needs 3.3V on Vin and GND.</li>
+          <li>Address mismatch. ICM-20948 default address is 0x69. Many examples assume 0x68.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Run an I²C scanner sketch. Watch the serial monitor for the detected address.</li>
+          <li>Reseat both ends of the Stemma QT cable.</li>
+          <li>Confirm the Feather's Stemma QT port is powered (LED on the Feather is on).</li>
+          <li>Update the library example to use address 0x69 explicitly.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag sd">SD</span>
+        <span class="bug-symptom">SD card init fails or writes return 0 bytes</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>Wrong CS (chip select) pin. SdFat default may not match how you wired it.</li>
+          <li>Card not formatted as FAT32. Most are out of the box, some are not.</li>
+          <li>SPI clock too high for the breakout's wiring. Try lowering to 4 MHz.</li>
+          <li>Card is fake or counterfeit. Cheap Amazon cards lie about capacity and corrupt under load.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Reformat the card as FAT32 on your PC.</li>
+          <li>Make sure the CS pin in code matches the wire. Print the value in setup() to be sure.</li>
+          <li>Try SdFat at SPI_HALF_SPEED first. Increase later.</li>
+          <li>Test with a different card. Brand-name SanDisk or Samsung is worth the few extra dollars.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag imu">IMU</span>
+        <span class="bug-symptom">Samples are at the wrong rate or non-uniform</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>You are using <code class="inline">delay(5)</code> instead of a hardware timer. Delays are not precise.</li>
+          <li>SD writes are blocking the sample loop. Buffer is too small or flush is on the wrong core.</li>
+          <li>I²C clock is the default 100 kHz. Read at 200 Hz with 9 axes takes longer than 5 ms at that speed. Bump to 400 kHz.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Plot the time deltas in Python. Look for a tight band at 5000 µs or a messy spread.</li>
+          <li>Use a hardware timer interrupt for sampling, not delay().</li>
+          <li>Set <code class="inline">Wire.setClock(400000)</code> after <code class="inline">Wire.begin()</code>.</li>
+          <li>Move SD flushes to Core 0 and IMU reads to Core 1.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag firmware">FIRMWARE</span>
+        <span class="bug-symptom">ESP32-S3 reboots randomly or hangs after a few seconds</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>Stack overflow in a FreeRTOS task. Default stack is small. Sampling and SD tasks need a few KB each.</li>
+          <li>Watchdog timer firing because a task is starving. Add <code class="inline">vTaskDelay(1)</code> at end of loop bodies.</li>
+          <li>Brownout from a current spike when the SD card writes. Battery sagging or USB cable too thin.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Enable core dump output and look at the panic reason in the serial monitor right before reboot.</li>
+          <li>Increase task stack size to 8 KB and see if it changes.</li>
+          <li>Try a different USB cable. Try a different USB port or a wall adapter.</li>
+          <li>Add a 470 µF capacitor across the SD breakout's Vin and GND.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag power">POWER</span>
+        <span class="bug-symptom">Battery dies way faster than expected</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>Wi-Fi or BLE radios are powering up even though you do not use them. Disable both explicitly in setup().</li>
+          <li>Status LED is full-brightness instead of dim. Move from 330 Ω to 1 kΩ resistor or use PWM.</li>
+          <li>SD writes are spiking current. Larger buffer = fewer flushes.</li>
+          <li>Battery is old or low capacity. Genuine Adafruit 1200 mAh should give you 5+ hours of logging.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Verify <code class="inline">WiFi.mode(WIFI_OFF); btStop();</code> in setup().</li>
+          <li>Measure current draw with a multimeter in series on the battery lead. Should be under 100 mA logging.</li>
+          <li>Charge the battery fully before each session and note the voltage.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag python">PYTHON</span>
+        <span class="bug-symptom">Binary log loads but plots look like noise or are mis-scaled</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>You forgot to convert from raw counts to physical units. ±8g range means each count is about 0.000244 g.</li>
+          <li>Endianness mismatch. ESP32 is little-endian; numpy reads need to use <code class="inline">'&lt;'</code> in the dtype.</li>
+          <li>Struct alignment in C++ added invisible padding bytes. Use <code class="inline">__attribute__((packed))</code> on the Sample struct.</li>
+          <li>You labeled the axes wrong relative to the mount. X may be left-right instead of forward-back.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Print one record in hex from the firmware and compare to what Python reads. They must match byte-for-byte.</li>
+          <li>Apply scale factor and re-plot.</li>
+          <li>While bench-testing, push the device along each axis on purpose. Confirm the right axis sees the motion.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-header">
+        <span class="bug-tag mount">MOUNT</span>
+        <span class="bug-symptom">Enclosure rattles loose or rotates mid-ride</span>
+        <span class="bug-chevron">▸</span>
+      </div>
+      <div class="bug-body">
+        <h5>Likely Causes</h5>
+        <ul>
+          <li>EPDM gasket too thick. Bolts compress unevenly and let it walk.</li>
+          <li>Bolt threads bottomed out before clamping the bracket.</li>
+          <li>3D print warped at the bolt holes. Layer adhesion failed under load.</li>
+          <li>Bottle cage bolts are only meant for a few pounds of pull. Trail vibration adds shock load.</li>
+        </ul>
+        <h5>What to Check First</h5>
+        <ol>
+          <li>Reduce gasket to 1 mm. Even compression matters.</li>
+          <li>Add a backup zip-tie around the enclosure and the down tube as a safety leash.</li>
+          <li>Reprint the bracket in PETG with thicker walls (3 mm minimum near bolt holes).</li>
+          <li>Check bolt torque after every ride for the first three rides.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="panel" style="border-color: var(--cyan); margin-top: 32px;">
+      <h4>// ONE LAST THING</h4>
+      <ul>
+        <li>Frustration is part of building things. Everyone hits walls. The real skill is having a routine when you hit one, since walls are inevitable.</li>
+        <li>Sleep on hard problems. Your brain works on bugs while you are not thinking about them. Some of the best fixes show up on the second day.</li>
+        <li>If you ship Phase 1 and learn how to use Claude well in the process, that is the real win. The motion sensor is the excuse.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== TAB: SHIP ===== -->
+  <div class="tab-panel" id="panel-ship">
+    <h2 class="section-title">// 10 · Ship It</h2>
+    <h3 class="subhead">What "Phase 1 done" looks like.</h3>
+    <p class="lead">If all of this is checked, Phase 1 ships and we plan Phase 2 together.</p>
+
+    <div class="checklist" data-section="ship">
+      <div class="check-item" data-id="ship-1"><div class="check-box"></div><div class="check-text"><strong>Working device in hand</strong>Powered on, in its enclosure, mounted on the bike, survives a full trail ride</div></div>
+      <div class="check-item" data-id="ship-2"><div class="check-box"></div><div class="check-text"><strong>One real ride captured</strong>30 to 60 minutes of trail. GoPro recorded alongside. Three-tap sync at both ends.</div></div>
+      <div class="check-item" data-id="ship-3"><div class="check-box"></div><div class="check-text"><strong>Sample integrity check passes</strong>Greater than 99% of time deltas are tight around 5000 µs. Fewer than 50 dropped samples.</div></div>
+      <div class="check-item" data-id="ship-4"><div class="check-box"></div><div class="check-text"><strong>Python notebook plots the ride</strong>Accel, gyro, magnetometer time series. Summary stats. Zoom into one feature and explain what it shows.</div></div>
+      <div class="check-item" data-id="ship-5"><div class="check-box"></div><div class="check-text"><strong>Labels CSV exists</strong>At least 5 features labeled (drop, jump, berm, bunny hop, rock garden) with start/end times.</div></div>
+      <div class="check-item" data-id="ship-6"><div class="check-box"></div><div class="check-text"><strong>Code on GitHub</strong>Public repo. README explains how to flash, mount, and capture. Decisions Log filled in.</div></div>
+      <div class="check-item" data-id="ship-7"><div class="check-box"></div><div class="check-text"><strong>Phase 1 demo to Dad</strong>Live walkthrough of one ride from device to plotted data. Answer questions about what each signature is.</div></div>
+    </div>
+
+    <h3 class="subhead" style="margin-top: 40px;">Ground Rules</h3>
+    <ul class="content-list">
+      <li>Ask me before you spend any money beyond the parts list.</li>
+      <li>Hardware safety issue (battery hot, swelling, smell, smoke): unplug and come get me.</li>
+      <li>Show me your work daily. Even broken. Especially broken.</li>
+      <li>If you finish early, write a one-page draft of what Phase 2 should look like. We will review it together.</li>
+      <li>This is a real engineering project. Build it like one.</li>
+    </ul>
+
+    <div class="signoff">
+      <p>Have fun with this.</p>
+      <p>I'm proud of you for taking it on.</p>
+      <div class="name" style="margin-top: 16px;">/ DAD</div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+  const days = [
+    { id: 'd1', tag: 'DAY 1', week: 1, time: '~1.5 H', title: 'Order parts. Stand up the dev environment.', tasks: [
+      { id: 'd1-1', title: 'Order all parts from Hardware tab', desc: 'Adafruit cart is the simplest single order. Have Dad place it.' },
+      { id: 'd1-2', title: 'Install Git, Node, VS Code, Python, Claude Code', desc: 'See Setup tab Step 1. Verify all commands print versions.' },
+      { id: 'd1-3', title: 'Install PlatformIO extension in VS Code', desc: 'Let it download its toolchain. Confirm the alien icon shows up in the sidebar.' },
+      { id: 'd1-4', title: 'Create GitHub repo and push initial files', desc: 'CLAUDE.md, README.md, .gitignore, this HTML brief inside docs/' },
+      { id: 'd1-5', title: 'First Claude Code session kickoff', desc: 'Open Claude Code in the project folder, send the Session Kickoff prompt' }
+    ]},
+    { id: 'd2', tag: 'DAY 2', week: 1, time: '~1.5 H', title: 'Learn the concepts (parts in transit).', tasks: [
+      { id: 'd2-1', title: 'Read the Firmware tab end to end', desc: 'Have Claude explain anything that does not click. Ask follow-up questions until it does.' },
+      { id: 'd2-2', title: 'Read about I²C and SPI', desc: 'Two-wire serial bus vs four-wire. Why we use I²C for the IMU and SPI for the SD.' },
+      { id: 'd2-3', title: 'Read about sampling and aliasing', desc: '"Nyquist rate" in plain English. Why 200 Hz captures most bike motion cleanly.' },
+      { id: 'd2-4', title: 'Write a one-page learning note in the repo', desc: 'docs/learning/concepts.md. Future-you reading this should be able to teach a friend.' }
+    ]},
+    { id: 'd3', tag: 'DAY 3', week: 1, time: '~2 H', title: 'First hardware boot. Blink the LED. Read the IMU.', tasks: [
+      { id: 'd3-1', title: 'Unbox parts. Lay everything out.', desc: 'Confirm nothing is missing or damaged before powering anything up.' },
+      { id: 'd3-2', title: 'Plug Feather into USB. Flash a blink sketch.', desc: 'Use PlatformIO. Built-in LED on a 1 Hz blink confirms toolchain.' },
+      { id: 'd3-3', title: 'Plug IMU into Stemma QT port', desc: 'No soldering needed. Cable clicks in both ends.' },
+      { id: 'd3-4', title: 'Run an Adafruit ICM20X example', desc: 'See live accel and gyro on the serial monitor. Tap the bench. Watch the spike.' },
+      { id: 'd3-5', title: 'Commit + push working state', desc: 'git commit -m "Feather + ICM-20948 reading on serial"' }
+    ]},
+    { id: 'd4', tag: 'DAY 4', week: 1, time: '~2 H', title: 'SD card writes. Soldering.', tasks: [
+      { id: 'd4-1', title: 'Solder header pins onto microSD breakout', desc: 'Female headers. Dad approves the joint before powering on.' },
+      { id: 'd4-2', title: 'Wire SD breakout to the Feather SPI pins', desc: 'CS to a free GPIO, MOSI/MISO/SCK to the Feather defaults. Document the pin map in code.' },
+      { id: 'd4-3', title: 'Run the SD CardInfo example', desc: 'Confirm card is detected and capacity matches.' },
+      { id: 'd4-4', title: 'Write and read a hello-world file', desc: 'Pull the card, plug into PC, confirm the file is readable.' },
+      { id: 'd4-5', title: 'Commit + push working state', desc: 'git commit -m "SD card init and basic write working"' }
+    ]},
+    { id: 'd5', tag: 'DAY 5', week: 1, time: '~3 H', title: 'First end-to-end logger (CSV).', tasks: [
+      { id: 'd5-1', title: 'Combine IMU read + SD write', desc: 'CSV format first. Loop at 100 Hz to keep things simple. Plain delay() is OK for v1.' },
+      { id: 'd5-2', title: 'Log a 30-second bench capture', desc: 'Pick up the board and move it around in distinct patterns: forward, backward, twist, tap.' },
+      { id: 'd5-3', title: 'Pull card. Open CSV in Excel. Eyeball the values.', desc: 'Does the right column change when you twisted? Sanity check before going further.' },
+      { id: 'd5-4', title: 'Add basic LED status', desc: 'Solid = powered, slow blink = logging, fast blink = SD error.' },
+      { id: 'd5-5', title: 'Commit + push end-to-end CSV logger', desc: 'Document the pin map and the CSV column order in README.' }
+    ]},
+    { id: 'd6', tag: 'DAY 6', week: 2, time: '~1.5 H', title: 'Binary log. Microsecond timestamps. Logging button.', tasks: [
+      { id: 'd6-1', title: 'Replace CSV with packed binary records', desc: 'Use the Sample struct in the Firmware tab. Each record 24 bytes.' },
+      { id: 'd6-2', title: 'Switch to a hardware timer at 200 Hz', desc: 'Hardware timer interrupt enqueues "sample now" events. No more delay().' },
+      { id: 'd6-3', title: 'Add a logging start/stop button', desc: 'Use the Feather USER button or wire a momentary switch. Debounce in software.' },
+      { id: 'd6-4', title: 'Add microsecond timestamps to every record', desc: 'micros() at the moment of read. Stored as uint32_t in the record.' },
+      { id: 'd6-5', title: 'Commit + push binary logger', desc: 'Tag this commit "v0.1-binary-logger" so you can find it later.' }
+    ]},
+    { id: 'd7', tag: 'DAY 7', week: 2, time: '~1.5 H', title: '3D print the enclosure.', tasks: [
+      { id: 'd7-1', title: 'Model the enclosure', desc: 'TinkerCAD or Fusion 360. Fits Feather, IMU, SD breakout, battery. Power switch cutout. LED cutout. SD card slot accessible.' },
+      { id: 'd7-2', title: 'Model the bottle-cage bracket', desc: 'Two M5 holes at standard 64 mm bottle cage spacing. Mating face for the enclosure.' },
+      { id: 'd7-3', title: 'Print v1', desc: 'PLA is fine for v1. Move to PETG if the v1 cracks under load.' },
+      { id: 'd7-4', title: 'Test fit', desc: 'Everything snaps in. Bolts thread cleanly. SD card insertable without disassembly.' }
+    ]},
+    { id: 'd8', tag: 'DAY 8', week: 2, time: '~2 H', title: 'Mount on the bike. Set up Python.', tasks: [
+      { id: 'd8-1', title: 'Mount the enclosure on the down tube', desc: 'EPDM gasket between case and frame. M5 button-head screws. Hand-tight.' },
+      { id: 'd8-2', title: 'Label axes on the case', desc: 'X = forward, Y = left, Z = up. Sharpie or printed label.' },
+      { id: 'd8-3', title: 'Install Python deps', desc: 'pandas, numpy, matplotlib, scipy, jupyter. pip install via PowerShell.' },
+      { id: 'd8-4', title: 'Write load_ride() function', desc: 'Reads binary file, returns DataFrame with proper dtypes and t_s column.' },
+      { id: 'd8-5', title: 'Build a basic plotting notebook', desc: 'Stacked accel + gyro + mag time series. Zoom controls. Summary stats.' }
+    ]},
+    { id: 'd9', tag: 'DAY 9', week: 2, time: '~2 H', title: 'Driveway test. End-to-end shakedown.', tasks: [
+      { id: 'd9-1', title: 'Charge the battery fully', desc: 'Confirm green LED on the Feather indicating charge complete.' },
+      { id: 'd9-2', title: 'Run the sync ritual', desc: 'Power on, mount, GoPro on, three taps, push log button. Same sequence every time.' },
+      { id: 'd9-3', title: 'Slow lap of the driveway / sidewalk', desc: '5 minutes. Hit one curb on purpose. Stand up, sit down. Tap brakes.' },
+      { id: 'd9-4', title: 'Pull card and load in notebook', desc: 'Confirm the three taps appear as accel spikes at the start and end.' },
+      { id: 'd9-5', title: 'Find the curb hit in the data', desc: 'Should be obvious in accel z. If it is not, something is wrong with the mount or the firmware.' },
+      { id: 'd9-6', title: 'Fix anything broken before the trail ride', desc: 'Time-deltas tight? Sample drops low? File closes cleanly? Iterate.' }
+    ]},
+    { id: 'd10', tag: 'DAY 10', week: 2, time: '~3 H', title: 'First real trail ride. Visualize. Label.', tasks: [
+      { id: 'd10-1', title: 'Pre-ride checklist', desc: 'Battery fully charged. Card inserted and empty. Enclosure firm on the frame. GoPro charged and SD ok.' },
+      { id: 'd10-2', title: 'Ride a 30 to 60 minute loop', desc: 'Include intentional features: 1 small drop if you feel good, 3 jumps, 2 berms, 1 rock garden, 1 bunny hop.' },
+      { id: 'd10-3', title: 'Sync ritual at start AND end', desc: 'Three taps each. Skip this and the data is hard to label.' },
+      { id: 'd10-4', title: 'Back home: pull card, load in notebook', desc: 'Plot the whole ride. Confirm sync taps. Compute summary stats.' },
+      { id: 'd10-5', title: 'Sync to GoPro footage', desc: 'Find the tap event in GoPro audio. Compute the offset to IMU sample index.' },
+      { id: 'd10-6', title: 'Label the features in labels.csv', desc: 'At least 5 features tagged with t_start_s, t_end_s, label, notes. Save next to the ride file.' },
+      { id: 'd10-7', title: 'Demo to Dad', desc: 'Walk through one ride from device to plotted data. Answer "what is that spike?". Push to GitHub.' }
+    ]}
+  ];
+
+  const STORAGE_KEY = 'bike-motion-sensor-progress-v1';
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { checks: {} };
+      const parsed = JSON.parse(raw);
+      return { checks: parsed.checks || {} };
+    } catch (e) {
+      return { checks: {} };
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Could not save progress to localStorage:', e);
+    }
+  }
+
+  const state = loadState();
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + tab).classList.add('active');
+      // Scroll so the tab bar sits just below the sticky topbar
+      const tabsEl = document.querySelector('.tabs');
+      const topbarEl = document.querySelector('.topbar');
+      const topbarHeight = topbarEl ? topbarEl.offsetHeight : 0;
+      const target = tabsEl.getBoundingClientRect().top + window.scrollY - topbarHeight;
+      window.scrollTo({ top: target, behavior: 'smooth' });
+    });
+  });
+
+  const dayGrid = document.getElementById('day-grid');
+  days.forEach(day => {
+    const card = document.createElement('div');
+    card.className = 'day-card';
+    card.dataset.dayId = day.id;
+    const totalTasks = day.tasks.length;
+    const weekClass = day.week === 2 ? 'w2' : '';
+
+    card.innerHTML = `
+      <div class="day-card-header">
+        <span class="day-tag ${weekClass}">${day.tag}</span>
+        <span class="day-title">${day.title}</span>
+        <span class="day-time">${day.time}</span>
+        <span class="day-progress" data-day-progress="${day.id}">0 / ${totalTasks}</span>
+        <span class="day-chevron">▸</span>
+      </div>
+      <div class="day-card-body">
+        ${day.tasks.map(t => `
+          <div class="check-item" data-id="${t.id}">
+            <div class="check-box"></div>
+            <div class="check-text"><strong>${t.title}</strong>${t.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    dayGrid.appendChild(card);
+
+    card.querySelector('.day-card-header').addEventListener('click', (e) => {
+      if (e.target.closest('.check-item')) return;
+      card.classList.toggle('expanded');
+    });
+  });
+
+  const firstDay = document.querySelector('.day-card');
+  if (firstDay) firstDay.classList.add('expanded');
+
+  function getAllCheckItems() {
+    return document.querySelectorAll('.check-item');
+  }
+
+  function applyCheckedState() {
+    getAllCheckItems().forEach(item => {
+      const id = item.dataset.id;
+      item.classList.toggle('done', !!state.checks[id]);
+    });
+  }
+
+  function bindCheckItems() {
+    getAllCheckItems().forEach(item => {
+      if (item.dataset.bound) return;
+      item.dataset.bound = '1';
+      item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        state.checks[id] = !state.checks[id];
+        item.classList.toggle('done', state.checks[id]);
+        saveState();
+        updateProgress();
+        updateDayProgress();
+      });
+    });
+  }
+
+  function updateProgress() {
+    const all = getAllCheckItems();
+    const done = Array.from(all).filter(i => state.checks[i.dataset.id]).length;
+    const pct = all.length ? Math.round((done / all.length) * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+  }
+
+  function updateDayProgress() {
+    days.forEach(day => {
+      const total = day.tasks.length;
+      const done = day.tasks.filter(t => state.checks[t.id]).length;
+      const el = document.querySelector(`[data-day-progress="${day.id}"]`);
+      if (el) {
+        el.textContent = `${done} / ${total}`;
+        el.classList.toggle('complete', done === total);
+      }
+    });
+  }
+
+  bindCheckItems();
+  applyCheckedState();
+  updateProgress();
+  updateDayProgress();
+
+  document.querySelectorAll('.bug-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.parentElement.classList.toggle('open');
+    });
+  });
+
+  document.querySelectorAll('.step-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.parentElement.classList.toggle('expanded');
+    });
+  });
+
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const targetId = 'prompt-' + btn.dataset.copy;
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      let text = el.innerText;
+      text = text.split('\n').map(line => line.replace(/^PS>\s?/, '')).join('\n').trim();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        const original = btn.textContent;
+        btn.textContent = 'COPIED ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('copied');
+        }, 1500);
+      } catch (e) {
+        btn.textContent = 'COPY FAILED';
+        setTimeout(() => { btn.textContent = 'COPY'; }, 1500);
+      }
+    });
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (!confirm('Reset all progress? This will uncheck every task.')) return;
+    state.checks = {};
+    saveState();
+    document.querySelectorAll('.check-item.done').forEach(i => i.classList.remove('done'));
+    updateProgress();
+    updateDayProgress();
+  });
+</script>
+
+</body>
+</html>
