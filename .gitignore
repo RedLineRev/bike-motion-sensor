@@ -1,0 +1,41 @@
+# PlatformIO
+.pio/
+*.elf
+*.bin
+*.hex
+*.map
+
+# Secrets — never commit these
+.env
+config.h
+secrets.h
+
+# Raw ride data — too large for git
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+build/
+
+# VS Code
+.vscode/
+
+# Claude Code worktrees (transient)
+.claude/worktrees/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
