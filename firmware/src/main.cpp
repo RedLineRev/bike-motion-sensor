@@ -1,21 +1,26 @@
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
-
-#define NEOPIXEL_PIN 33
-#define NEOPIXEL_COUNT 1
-
-Adafruit_NeoPixel pixel(NEOPIXEL_COUNT, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+#include <Wire.h>
 
 void setup() {
-    pixel.begin();
-    pixel.setBrightness(50);
+    Serial.begin(115200);
+    delay(3000);
+    Serial.println("Boot!");
+    Wire.begin();
+    Serial.println("I2C ready.");
 }
 
 void loop() {
-    pixel.setPixelColor(0, pixel.Color(0, 255, 0)); // green on
-    pixel.show();
-    delay(500);
-    pixel.setPixelColor(0, pixel.Color(0, 0, 0));   // off
-    pixel.show();
-    delay(500);
+    Serial.println("Scanning I2C bus...");
+    int found = 0;
+    for (byte addr = 1; addr < 127; addr++) {
+        Wire.beginTransmission(addr);
+        if (Wire.endTransmission() == 0) {
+            Serial.print("Device found at address 0x");
+            Serial.println(addr, HEX);
+            found++;
+        }
+    }
+    if (found == 0) Serial.println("No I2C devices found.");
+    else Serial.println("Scan complete.");
+    delay(3000);
 }
